@@ -1,7 +1,7 @@
 groups:
 - name: Networking
   rules:
-  - alert: FailoverNET
+  - alert: FailoverFABS2
     # If the uptime of the service is less than 300 s it likely failed over.
     expr: dss_sched_uptime < 300
     labels:
