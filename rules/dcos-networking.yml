@@ -1,41 +1,19 @@
 groups:
 - name: Networking
   rules:
-  - alert: FailoverFABS2
-    # If the uptime of the service is less than 300 s it likely failed over.
-    expr: dss_sched_uptime < 300
+  - alert: "DNS Errors"
+    expr: max(dns_forwarder_failures_total / dns_forwarder_requests_duration_seconds_count * 100) > 10
+    for: 1m
     labels:
       severity: warning
-      service: dcos-storage
+      service: dcos-net-dns
     annotations:
-      summary: DC/OS storage service failed over
-  - alert: DisconnectedNET
-    # The default heartbeat interval in Mesos is 1/(15 s) = 0.067/s.
-    expr: rate(dss_sched_events_heartbeat_process_count[5m]) < 0.05
-    for: 5m
-    labels:
-      severity: critical
-      service: dcos-storage
-    annotations:
-      summary: DC/OS storage service has problem connecting to master
-  - alert: "Volume provider RECOVERY NET"
-    expr: count(dss_obj_providers_recovery) > 0
+      summary: "DC/OS DNS forward error rate exceeds 10% for more than a 1m"
+  - alert: "DNS Errors Control"
+    expr: max(dns_forwarder_failures_total / dns_forwarder_requests_duration_seconds_count * 100) < 10
+    for: 1m
     labels:
       severity: warning
-      service: dcos-storage
+      service: dcos-net-dns
     annotations:
-      summary: DC/OS storage service has at least one recovering volume provider
-  - alert: "Volume RECOVERY NET"
-    expr: count(dss_obj_volumes_recovery) > 0
-    labels:
-      severity: warning
-      service: dcos-storage
-    annotations:
-      summary: DC/OS storage service has at least one recovering volume
-  - alert: "Device RECOVERY NET"
-    expr: count(dss_obj_devices_recovery) > 0
-    labels:
-      severity: warning
-      service: dcos-storage
-    annotations:
-      summary: DC/OS storage service has at least one recovering volume
+      summary: "DC/OS DNS forward error rate exceeds 10% for more than a 1m"
