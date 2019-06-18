@@ -2,7 +2,7 @@ groups:
 - name: Networking
   rules:
   - alert: "DNS Errors"
-    expr: max(dns_forwarder_failures_total / dns_forwarder_requests_duration_seconds_count * 100) > 10
+    expr: max(sum(rate(dns_forwarder_failures_total[5m])) / sum(rate(dns_forwarder_requests_duration_seconds_count[5m]))) by (host) > 0.10
     for: 1m
     labels:
       severity: warning
@@ -10,10 +10,27 @@ groups:
     annotations:
       summary: "DC/OS DNS forward error rate exceeds 10% for more than a 1m"
   - alert: "DNS Errors Control"
-    expr: max(dns_forwarder_failures_total / dns_forwarder_requests_duration_seconds_count * 100) < 10
+    expr: max(sum(rate(dns_forwarder_failures_total[5m])) / sum(rate(dns_forwarder_requests_duration_seconds_count[5m]))) by (host) <= 0.10
     for: 1m
     labels:
       severity: warning
       service: dcos-net-dns
     annotations:
-      summary: "DC/OS DNS forward error rate exceeds 10% for more than a 1m"
+      summary: "Control"
+
+  - alert: "Mesos Listener Stream Error"
+    expr: max(sum(rate(mesos_listener_failures_total[5m])) / sum(rate(mesos_listener_messages_total[5m]))) by (host) > 0.10
+    for: 1m
+    labels:
+      severity: warning
+      service: dcos-net-dns
+    annotations:
+      summary: "DC/OS Mesos Stream failures exceeds 10% of the successful messages for more than a minute"
+  - alert: "Mesos Listener Stream Error Control"
+    expr: max(sum(rate(mesos_listener_failures_total[5m])) / sum(rate(mesos_listener_messages_total[5m]))) by (host) <= 0.10
+    for: 1m
+    labels:
+      severity: warning
+      service: dcos-net-dns
+    annotations:
+      summary: "Control"
